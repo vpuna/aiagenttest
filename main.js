@@ -28,7 +28,7 @@ pool
 // CREATE
 app.post("/users", async (req, res) => {
   try {
-    const { nameF, nameL, address, age } = req.body;
+    const { nameF, nameL, address2, age } = req.body;
 
     if (typeof nameF !== "string" || !nameF.trim()) {
       return res.status(400).json({ error: "nameF is required (string)" });
@@ -36,16 +36,16 @@ app.post("/users", async (req, res) => {
     if (typeof nameL !== "string" || !nameL.trim()) {
       return res.status(400).json({ error: "nameL is required (string)" });
     }
-    if (typeof address !== "string" || !address.trim()) {
-      return res.status(400).json({ error: "address is required (string)" });
+    if (typeof address2 !== "string" || !address2.trim()) {
+      return res.status(400).json({ error: "address2 is required (string)" });
     }
     if (typeof age !== "number" || !Number.isFinite(age)) {
       return res.status(400).json({ error: "age is required (number)" });
     }
 
     const result = await pool.query(
-      "INSERT INTO users (nameF, nameL, address, age) VALUES ($1, $2, $3, $4) RETURNING *",
-      [nameF.trim(), nameL.trim(), address.trim(), age]
+      "INSERT INTO users (nameF, nameL, address2, age) VALUES ($1, $2, $3, $4) RETURNING *",
+      [nameF.trim(), nameL.trim(), address2.trim(), age]
     );
 
     return res.status(201).json(result.rows[0]);
@@ -57,7 +57,7 @@ app.post("/users", async (req, res) => {
 // READ ALL
 app.get("/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, nameF, nameL, address, age FROM users ORDER BY id ASC");
+    const result = await pool.query("SELECT id, nameF, nameL, address2, age FROM users ORDER BY id ASC");
     return res.json(result.rows);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -72,7 +72,7 @@ app.get("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const result = await pool.query("SELECT id, nameF, nameL, address, age FROM users WHERE id = $1", [id]);
+    const result = await pool.query("SELECT id, nameF, nameL, address2, age FROM users WHERE id = $1", [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "User not found" });
@@ -92,7 +92,7 @@ app.put("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const { nameF, nameL, address, age } = req.body;
+    const { nameF, nameL, address2, age } = req.body;
 
     if (typeof nameF !== "string" || !nameF.trim()) {
       return res.status(400).json({ error: "nameF is required (string)" });
@@ -100,16 +100,16 @@ app.put("/users/:id", async (req, res) => {
     if (typeof nameL !== "string" || !nameL.trim()) {
       return res.status(400).json({ error: "nameL is required (string)" });
     }
-    if (typeof address !== "string" || !address.trim()) {
-      return res.status(400).json({ error: "address is required (string)" });
+    if (typeof address2 !== "string" || !address2.trim()) {
+      return res.status(400).json({ error: "address2 is required (string)" });
     }
     if (typeof age !== "number" || !Number.isFinite(age)) {
       return res.status(400).json({ error: "age is required (number)" });
     }
 
     const result = await pool.query(
-      "UPDATE users SET nameF = $1, nameL = $2, address = $3, age = $4 WHERE id = $5 RETURNING *",
-      [nameF.trim(), nameL.trim(), address.trim(), age, id]
+      "UPDATE users SET nameF = $1, nameL = $2, address2 = $3, age = $4 WHERE id = $5 RETURNING *",
+      [nameF.trim(), nameL.trim(), address2.trim(), age, id]
     );
 
     if (result.rows.length === 0) {
