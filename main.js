@@ -25,6 +25,11 @@ pool
     process.exit(1);
   });
 
+/*
+Note: The 'address' column was removed from the DB table according to metadata changes.
+This codebase does not reference the 'address' column, so no code changes were necessary.
+*/
+
 // CREATE
 app.post("/users", async (req, res) => {
   try {
