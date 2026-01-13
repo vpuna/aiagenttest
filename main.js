@@ -28,7 +28,7 @@ pool
 // CREATE
 app.post("/users", async (req, res) => {
   try {
-    const { name, age, address } = req.body;
+    const { name, age } = req.body;
 
     if (typeof name !== "string" || !name.trim()) {
       return res.status(400).json({ error: "name is required (string)" });
@@ -36,14 +36,10 @@ app.post("/users", async (req, res) => {
     if (typeof age !== "number" || !Number.isFinite(age)) {
       return res.status(400).json({ error: "age is required (number)" });
     }
-    // address is smallint, so validate as number and integer
-    if (typeof address !== "number" || !Number.isInteger(address)) {
-      return res.status(400).json({ error: "address is required (smallint)" });
-    }
 
     const result = await pool.query(
-      "INSERT INTO users (name, age, address) VALUES ($1, $2, $3) RETURNING *",
-      [name.trim(), age, address]
+      "INSERT INTO users (name, age) VALUES ($1, $2) RETURNING *",
+      [name.trim(), age]
     );
 
     return res.status(201).json(result.rows[0]);
@@ -55,7 +51,7 @@ app.post("/users", async (req, res) => {
 // READ ALL
 app.get("/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT name, age, address FROM users ORDER BY id ASC");
+    const result = await pool.query("SELECT name, age FROM users ORDER BY id ASC");
     return res.json(result.rows);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -70,7 +66,7 @@ app.get("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const result = await pool.query("SELECT name, age, address FROM users WHERE id = $1", [id]);
+    const result = await pool.query("SELECT name, age FROM users WHERE id = $1", [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "User not found" });
@@ -90,7 +86,7 @@ app.put("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const { name, age, address } = req.body;
+    const { name, age } = req.body;
 
     if (typeof name !== "string" || !name.trim()) {
       return res.status(400).json({ error: "name is required (string)" });
@@ -98,13 +94,10 @@ app.put("/users/:id", async (req, res) => {
     if (typeof age !== "number" || !Number.isFinite(age)) {
       return res.status(400).json({ error: "age is required (number)" });
     }
-    if (typeof address !== "number" || !Number.isInteger(address)) {
-      return res.status(400).json({ error: "address is required (smallint)" });
-    }
 
     const result = await pool.query(
-      "UPDATE users SET name = $1, age = $2, address = $3 WHERE id = $4 RETURNING *",
-      [name.trim(), age, address, id]
+      "UPDATE users SET name = $1, age = $2 WHERE id = $3 RETURNING *",
+      [name.trim(), age, id]
     );
 
     if (result.rows.length === 0) {
