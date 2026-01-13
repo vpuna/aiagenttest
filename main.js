@@ -51,7 +51,7 @@ app.post("/users", async (req, res) => {
 // READ ALL
 app.get("/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT name, age FROM users ORDER BY id ASC");
+    const result = await pool.query("SELECT id, name, age FROM users ORDER BY id ASC");
     return res.json(result.rows);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -66,7 +66,7 @@ app.get("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const result = await pool.query("SELECT name, age FROM users WHERE id = $1", [id]);
+    const result = await pool.query("SELECT id, name, age FROM users WHERE id = $1", [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "User not found" });
