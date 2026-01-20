@@ -33,10 +33,13 @@ This codebase does not reference the 'address' column, so no code changes were n
 // CREATE
 app.post("/users", async (req, res) => {
   try {
-    const { name, age, occupation } = req.body;
+    const { fname, lname, age, occupation } = req.body;
 
-    if (typeof name !== "string" || !name.trim()) {
-      return res.status(400).json({ error: "name is required (string)" });
+    if (typeof fname !== "string" || !fname.trim()) {
+      return res.status(400).json({ error: "fname is required (string)" });
+    }
+    if (typeof lname !== "string" || !lname.trim()) {
+      return res.status(400).json({ error: "lname is required (string)" });
     }
     if (typeof age !== "number" || !Number.isFinite(age)) {
       return res.status(400).json({ error: "age is required (number)" });
@@ -46,8 +49,8 @@ app.post("/users", async (req, res) => {
     }
 
     const result = await pool.query(
-      "INSERT INTO users (name, age, occupation) VALUES ($1, $2, $3) RETURNING *",
-      [name.trim(), age, occupation.trim()]
+      "INSERT INTO users (fname, lname, age, occupation) VALUES ($1, $2, $3, $4) RETURNING *",
+      [fname.trim(), lname.trim(), age, occupation.trim()]
     );
 
     return res.status(201).json(result.rows[0]);
@@ -59,7 +62,8 @@ app.post("/users", async (req, res) => {
 // READ ALL
 app.get("/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, name, age, occupation FROM users ORDER BY id ASC");
+    const result = await pool.query("SELECT id, fname, lname, age, occupation FROM users ORDER BY id ASC");
+
 
     return res.json(result.rows);
   } catch (err) {
@@ -75,7 +79,7 @@ app.get("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const result = await pool.query("SELECT id, name, age, occupation FROM users WHERE id = $1", [id]);
+    const result = await pool.query("SELECT id, fname, lname, age, occupation FROM users WHERE id = $1", [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "User not found" });
@@ -95,10 +99,13 @@ app.put("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const { name, age, occupation } = req.body;
+    const { fname, lname, age, occupation } = req.body;
 
-    if (typeof name !== "string" || !name.trim()) {
-      return res.status(400).json({ error: "name is required (string)" });
+    if (typeof fname !== "string" || !fname.trim()) {
+      return res.status(400).json({ error: "fname is required (string)" });
+    }
+    if (typeof lname !== "string" || !lname.trim()) {
+      return res.status(400).json({ error: "lname is required (string)" });
     }
     if (typeof age !== "number" || !Number.isFinite(age)) {
       return res.status(400).json({ error: "age is required (number)" });
@@ -108,8 +115,8 @@ app.put("/users/:id", async (req, res) => {
     }
 
     const result = await pool.query(
-      "UPDATE users SET name = $1, age = $2, occupation = $3 WHERE id = $4 RETURNING *",
-      [name.trim(), age, occupation.trim(), id]
+      "UPDATE users SET fname = $1, lname = $2, age = $3, occupation = $4 WHERE id = $5 RETURNING *",
+      [fname.trim(), lname.trim(), age, occupation.trim(), id]
     );
 
     if (result.rows.length === 0) {
@@ -130,17 +137,26 @@ app.patch("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const { name, age, occupation } = req.body;
+    const { fname, lname, age, occupation } = req.body;
     const updates = [];
     const values = [];
     let parameterIndex = 1;
 
-    if (name !== undefined) {
-      if (typeof name !== "string" || !name.trim()) {
-        return res.status(400).json({ error: "name must be a non-empty string" });
+    if (fname !== undefined) {
+      if (typeof fname !== "string" || !fname.trim()) {
+        return res.status(400).json({ error: "fname must be a non-empty string" });
       }
-      updates.push(`name = $${parameterIndex}`);
-      values.push(name.trim());
+      updates.push(`fname = $${parameterIndex}`);
+      values.push(fname.trim());
+      parameterIndex += 1;
+    }
+
+    if (lname !== undefined) {
+      if (typeof lname !== "string" || !lname.trim()) {
+        return res.status(400).json({ error: "lname must be a non-empty string" });
+      }
+      updates.push(`lname = $${parameterIndex}`);
+      values.push(lname.trim());
       parameterIndex += 1;
     }
 
@@ -163,7 +179,7 @@ app.patch("/users/:id", async (req, res) => {
     }
 
     if (updates.length === 0) {
-      return res.status(400).json({ error: "at least one field (name, age, occupation) is required" });
+      return res.status(400).json({ error: "at least one field (fname, lname, age, occupation) is required" });
     }
 
     values.push(id);
