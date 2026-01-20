@@ -33,7 +33,7 @@ This codebase does not reference the 'address' column, so no code changes were n
 // CREATE
 app.post("/users", async (req, res) => {
   try {
-    const { name, age, occupation } = req.body;
+    const { name, age } = req.body;
 
     if (typeof name !== "string" || !name.trim()) {
       return res.status(400).json({ error: "name is required (string)" });
@@ -41,13 +41,10 @@ app.post("/users", async (req, res) => {
     if (typeof age !== "number" || !Number.isFinite(age)) {
       return res.status(400).json({ error: "age is required (number)" });
     }
-    if (typeof occupation !== "string" || !occupation.trim()) {
-      return res.status(400).json({ error: "occupation is required (string)" });
-    }
 
     const result = await pool.query(
-      "INSERT INTO users (name, age, occupation) VALUES ($1, $2, $3) RETURNING *",
-      [name.trim(), age, occupation.trim()]
+      "INSERT INTO users (name, age) VALUES ($1, $2) RETURNING *",
+      [name.trim(), age]
     );
 
     return res.status(201).json(result.rows[0]);
@@ -59,7 +56,7 @@ app.post("/users", async (req, res) => {
 // READ ALL
 app.get("/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, name, age, occupation FROM users ORDER BY id ASC");
+    const result = await pool.query("SELECT id, name, age FROM users ORDER BY id ASC");
     return res.json(result.rows);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -74,7 +71,7 @@ app.get("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const result = await pool.query("SELECT id, name, age, occupation FROM users WHERE id = $1", [id]);
+    const result = await pool.query("SELECT id, name, age FROM users WHERE id = $1", [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "User not found" });
@@ -94,43 +91,18 @@ app.put("/users/:id", async (req, res) => {
       return res.status(400).json({ error: "id must be an integer" });
     }
 
-    const { name, age, occupation } = req.body;
-    const updates = [];
-    const values = [];
+    const { name, age } = req.body;
 
-    if (name !== undefined) {
-      if (typeof name !== "string" || !name.trim()) {
-        return res.status(400).json({ error: "name must be a non-empty string" });
-      }
-      values.push(name.trim());
-      updates.push(`name = $${values.length}`);
+    if (typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ error: "name is required (string)" });
     }
-
-    if (age !== undefined) {
-      if (typeof age !== "number" || !Number.isFinite(age)) {
-        return res.status(400).json({ error: "age must be a valid number" });
-      }
-      values.push(age);
-      updates.push(`age = $${values.length}`);
+    if (typeof age !== "number" || !Number.isFinite(age)) {
+      return res.status(400).json({ error: "age is required (number)" });
     }
-
-    if (occupation !== undefined) {
-      if (typeof occupation !== "string" || !occupation.trim()) {
-        return res.status(400).json({ error: "occupation must be a non-empty string" });
-      }
-      values.push(occupation.trim());
-      updates.push(`occupation = $${values.length}`);
-    }
-
-    if (updates.length === 0) {
-      return res.status(400).json({ error: "at least one field is required" });
-    }
-
-    values.push(id);
 
     const result = await pool.query(
-      `UPDATE users SET ${updates.join(", ")} WHERE id = $${values.length} RETURNING *`,
-      values
+      "UPDATE users SET name = $1, age = $2 WHERE id = $3 RETURNING *",
+      [name.trim(), age, id]
     );
 
     if (result.rows.length === 0) {
